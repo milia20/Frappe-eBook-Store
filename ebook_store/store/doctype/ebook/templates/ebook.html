@@ -1,0 +1,68 @@
+{% extends "templates/store/base.html" %}
+
+{% block body %}
+<div class="columns">
+    <div class="column is-one-third">
+        <img class="cover-image px-6" src="{{ doc.cover_image }}" alt="Book Cover Image">
+    </div>
+    <div class="column">
+        <div>
+            <h1 class="title is-1">{{ doc.name }}</h1>
+            <h2 class="subtitle is-4">by {{ author.name }}</h2>
+        </div>
+        <div class="mt-3">
+            <span class="tag is-link is-normal">{{ doc.format }}</span>
+        </div>
+        <div>
+            <button id="buy-button" class="button is-medium is-outlined is-link mt-5">Buy</button>
+        </div>
+    </div>
+</div>
+
+<section class="container">
+    <div class="tabs">
+        <ul>
+            <li class="is-active"><a>Description</a></li>
+            <li><a>TOC</a></li>
+            <li><a>About the author</a></li>
+        </ul>
+    </div>
+
+    <div>
+        <p>{{ frappe.utils.md_to_html(doc.description) }}</p>
+    </div>
+
+    <div>
+        <p>{{ frappe.utils.md_to_html(doc.toc) }}</p>
+    </div>
+
+    <div>
+        <p>{{ frappe.utils.md_to_html(author.bio) }}</p>
+    </div>
+</section>
+<script>
+    const buyButton = document.getElementById("buy-button")
+
+    buyButton.onclick = async function (e) {
+        location.href = "/store/success"
+        fetch('{{doc.asset_file}}')
+   // check to make sure you didn't have an unexpected failure (may need to check other things here depending on use case / backend)
+  .then(resp => resp.status === 200 ? resp.blob() : Promise.reject('something went wrong'))
+  .then(blob => {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    // the filename you want
+    a.download = '{{doc.asset_file}}';
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    // or you know, something with better UX...
+    alert('your file has downloaded!'); 
+  })
+  .catch(() => alert('oh no!'));
+    }
+</script>
+
+{% endblock %}
